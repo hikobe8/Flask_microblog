@@ -3,3 +3,4 @@ venv/lib
 .idea/
 __pycache__
 app/__pycache__
+logs/
