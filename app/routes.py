@@ -7,6 +7,7 @@ from flask import request
 from werkzeug.urls import url_parse
 from datetime import datetime
 
+
 @app.before_request
 def before_request():
     if current_user.is_authenticated:
@@ -95,3 +96,35 @@ def edit_profile():
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='Edit Profile', form=form)
+
+
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    u = User.query.filter_by(username=username).first()
+    if u is None:
+        flash('User {} not found.'.format(username))
+        return redirect(url_for('index'))
+    if u == current_user:
+        flash('You cannot follow yourself!')
+        return redirect(url_for('user', username=username))
+    current_user.follow(u)
+    db.session.commit()
+    flash('You are following {}!'.format(username))
+    return redirect(url_for('user', username=username))
+
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    u = User.query.filter_by(username=username).first()
+    if u is None:
+        flash('User {} not found.'.format(username))
+        return redirect(url_for('index'))
+    if u == current_user:
+        flash('You cannot unfollow yourself!')
+        return redirect(url_for('user', username=username))
+    current_user.unfollow(u)
+    db.session.commit()
+    flash('You are not following {}!'.format(username))
+    return redirect(url_for('user', username=username))
